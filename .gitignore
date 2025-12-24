@@ -9,3 +9,10 @@ venv/
 env/
 .DS_Store
 Thumbs.db
+
+# Model weights
+models/
+*.pth
+*.pt
+*.ckpt
+
