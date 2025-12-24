@@ -15,12 +15,10 @@ def evaluate(data_dir: str, batch_size: int = 32):
     ds = datasets.ImageFolder(data_dir, transform=val_transform)
     dl = DataLoader(ds, batch_size=batch_size, shuffle=False)
 
-    # ImageFolder class indices
-    # Usually: {'NORMAL': 0, 'PNEUMONIA': 1}
-    print("[INFO] device:", device)
-    print("[INFO] model_version:", version)
-    print("[INFO] samples:", len(ds))
-    print("[INFO] class_to_idx:", ds.class_to_idx)
+    print("device:", device)
+    print("model_version:", version)
+    print("samples:", len(ds))
+    print("class_to_idx:", ds.class_to_idx)
 
     y_true_all = []
     y_prob_all = []

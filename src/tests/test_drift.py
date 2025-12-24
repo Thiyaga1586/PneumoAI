@@ -15,15 +15,9 @@ class TestDrift(unittest.TestCase):
     @patch("src.pneumonia_system.mlops.drift.recent_requests")
     @patch("src.pneumonia_system.mlops.drift.load_baseline")
     def test_drift_triggers_rollback(self, mock_load_baseline, mock_recent_requests, mock_rollback):
-        # baseline: mostly in first bin
         baseline = [0.90] + [0.10/31.0]*31
         mock_load_baseline.return_value = (32, baseline)
-
-        # current: shift mass to last bin => high PSI
         current = [0.10/31.0]*31 + [0.90]
-
-        # recent_requests must return tuples:
-        # (ts_utc, model_version, latency_ms, label, probability, hist_json, error, true_label)
         mock_recent_requests.return_value = [
             ("2025-01-01T00:00:00Z", "v1", 10.0, "Normal", 0.1, json.dumps(current), None, None)
         ]

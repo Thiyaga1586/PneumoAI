@@ -63,7 +63,6 @@ def drift_check_and_maybe_rollback(
     current = compute_current_hist(window=window)
     score = psi(baseline, current)
 
-    # MVP rollback trigger
     if score >= threshold:
         rollback()
 

@@ -31,12 +31,10 @@ def init_db():
         )
         con.commit()
 
-        # ✅ migration for older DBs that don't have true_label
         try:
             cur.execute("ALTER TABLE requests ADD COLUMN true_label TEXT")
             con.commit()
         except sqlite3.OperationalError:
-            # column already exists
             pass
 
 
@@ -108,7 +106,6 @@ def latest_rows(limit: int = 200, model_version: Optional[str] = None) -> List[D
         rows = []
         for r in cur.fetchall():
             prob = float(r[5])
-            # optional: simple banding (super useful in dashboards/alerts)
             if r[6] is not None:
                 band = "error"
             elif prob >= 0.8:

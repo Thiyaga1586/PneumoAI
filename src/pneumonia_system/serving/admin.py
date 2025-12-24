@@ -8,16 +8,11 @@ from ..mlops.rollback import get_current_version, set_current_version
 from ..observability.store import latest_rows
 
 
-
 def create_admin_router(
     reload_model: Callable[[], None],
     get_served_version: Callable[[], str],
 ) -> APIRouter:
-    """
-    Admin router factory to avoid circular imports.
-    - reload_model(): reloads in-memory model used by API
-    - get_served_version(): returns in-memory served model version
-    """
+    
     router = APIRouter()
 
     @router.get("/status")
@@ -78,8 +73,7 @@ def create_admin_router(
     def eval_latest(window: int = 200, model_version: Optional[str] = None) -> Dict[str, Any]:
         """
         Rolling evaluation over last N logged requests from SQLite.
-        - Always returns ops metrics (count, error_rate, latency p50/p95/mean)
-        - Returns classification metrics only if true_label exists in rows.
+        Always returns ops metrics (count, error_rate, latency p50/p95/mean)
         """
         rows = latest_rows(limit=window, model_version=model_version)
 
@@ -87,7 +81,6 @@ def create_admin_router(
         if n == 0:
             return {"window": window, "count": 0, "message": "No requests logged yet."}
 
-        # ops metrics
         ok_rows = [r for r in rows if r["error"] is None]
         err_count = n - len(ok_rows)
         error_rate = err_count / n
@@ -108,7 +101,6 @@ def create_admin_router(
                 "mean": round(float(lat.mean()), 3),
             }
 
-        # classification metrics only if true_label is present
         labeled = [r for r in ok_rows if r.get("true_label")]
         out["labeled_count"] = len(labeled)
 
