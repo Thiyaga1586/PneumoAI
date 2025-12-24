@@ -1,0 +1,5 @@
+Model,Accuracy,AUC,F1-Score,Loss
+ImprovedPneumoniaCNN,0.9676,0.9959,0.9685,0.0778
+DeepResNet,0.9698,0.9952,0.9705,0.0837
+EfficientNetB0,0.969,0.9972,0.9695,0.0714
+Ensemble,0.9718,0.9973,0.9724,

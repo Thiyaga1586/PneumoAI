@@ -1,0 +1,10 @@
+data/runtime/
+src/data/runtime/
+logs/
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+.DS_Store
+Thumbs.db
