@@ -1,6 +1,6 @@
 # PneumoAI — End-to-End Pneumonia Detection System (Research → Production)
 
-PneumoAI is a **full-stack, production-oriented machine learning system** for detecting **Pneumonia vs Normal** from chest X-ray images.  
+PneumoAI is a **production-oriented machine learning system** for detecting **Pneumonia vs Normal** from chest X-ray images.  
 What began as a focused **model research project** has evolved into a **system-level ML application** with **clear MLOps foundations, a defined MVP scope, and production-style workflows**.
 
 The project is currently in a **system testing and continuous evaluation stage**, where model behavior, serving reliability, and monitoring signals are actively validated and refined.No Gradio is used in the deployed Space.
