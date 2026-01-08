@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from PIL import Image
 
 from .admin import create_admin_router
+from .settings import settings
 from ..observability.metrics import record_latency, record_error, p95, latencies
 from ..model.loader import load_model
 from ..model.preprocess import preprocess_image, extract_intensity_histogram
@@ -17,7 +18,13 @@ from .validation import read_and_validate_image
 
 app = FastAPI(title="Pneumonia ML Inference API", version="0.3")
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+if settings.model_device.lower() == "cpu":
+    device = torch.device("cpu")
+elif settings.model_device.lower() == "cuda":
+    device = torch.device("cuda")
+else:
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 MODEL = None
 MODEL_VERSION = None
 MODEL_THRESHOLD = 0.5
@@ -25,32 +32,39 @@ MODEL_METADATA = {}
 
 def _reload_model():
     global MODEL, MODEL_VERSION, MODEL_THRESHOLD, MODEL_METADATA
-    MODEL, MODEL_VERSION, MODEL_THRESHOLD, MODEL_METADATA = load_model(device=device)
+    MODEL, MODEL_VERSION, MODEL_THRESHOLD, MODEL_METADATA = load_model(
+        device=device,
+        version=settings.default_version
+    )
 
 
 def _served_version() -> str:
     return MODEL_VERSION
 
 
-app.include_router(
-    create_admin_router(reload_model=_reload_model, get_served_version=_served_version),
-    prefix="/admin",
-)
+if settings.admin_enabled:
+    app.include_router(
+        create_admin_router(reload_model=_reload_model, get_served_version=_served_version),
+        prefix="/admin",
+    )
 
 @app.get("/")
 def root():
-    return {
+    resp = {
         "message": "Pneumonia Inference API is running",
         "docs": "/docs",
         "health": "/health",
-        "admin": "/admin/status"
     }
+    if settings.admin_enabled:
+        resp["admin"] = "/admin/status"
+    return resp
+
 
 
 
 @app.on_event("startup")
 def startup_event():
-    init_db()
+    init_db(db_path=settings.db_path)
     _reload_model()
 
 

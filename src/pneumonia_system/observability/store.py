@@ -10,33 +10,33 @@ def _connect():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     return sqlite3.connect(str(DB_PATH))
 
+def init_db(db_path: str = "requests.db"):
+    global _DB_PATH
+    _DB_PATH = str(db_path)
 
-def init_db():
-    with _connect() as con:
-        cur = con.cursor()
-        cur.execute(
-            """
-            CREATE TABLE IF NOT EXISTS requests (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                ts_utc TEXT NOT NULL,
-                model_version TEXT NOT NULL,
-                latency_ms REAL NOT NULL,
-                label TEXT NOT NULL,
-                probability REAL NOT NULL,
-                hist_json TEXT,
-                error TEXT,
-                true_label TEXT
-            )
-            """
+    Path(_DB_PATH).parent.mkdir(parents=True, exist_ok=True)
+
+    conn = sqlite3.connect(_DB_PATH)
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ts_utc TEXT,
+            model_version TEXT,
+            latency_ms REAL,
+            label TEXT,
+            probability REAL,
+            hist_json TEXT,
+            error TEXT,
+            true_label TEXT
         )
-        con.commit()
+        """
+    )
 
-        try:
-            cur.execute("ALTER TABLE requests ADD COLUMN true_label TEXT")
-            con.commit()
-        except sqlite3.OperationalError:
-            pass
-
+    conn.commit()
+    conn.close()
 
 def log_request(
     ts_utc: str,

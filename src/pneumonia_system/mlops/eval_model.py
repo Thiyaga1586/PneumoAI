@@ -9,7 +9,7 @@ from ..model.preprocess import val_transform
 
 def evaluate(data_dir: str, batch_size: int = 32):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model, version = load_model(device=device)
+    model, version, thr = load_model(device=device)
     model.eval()
 
     ds = datasets.ImageFolder(data_dir, transform=val_transform)
@@ -34,7 +34,7 @@ def evaluate(data_dir: str, batch_size: int = 32):
     y_prob = np.concatenate(y_prob_all)
     y_true = np.concatenate(y_true_all)
 
-    thr = 0.5
+    # thr = 0.5
     y_pred = (y_prob >= thr).astype(int)
 
     tn = int(((y_pred == 0) & (y_true == 0)).sum())
