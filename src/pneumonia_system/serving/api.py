@@ -4,6 +4,7 @@ from typing import Dict, Any
 
 import torch
 from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from PIL import Image
 
@@ -12,17 +13,19 @@ from ..observability.metrics import record_latency, record_error, p95, latencies
 from ..model.loader import load_model
 from ..model.preprocess import preprocess_image, extract_intensity_histogram
 from ..observability.store import log_request, init_db
+from .validation import read_and_validate_image
 
 app = FastAPI(title="Pneumonia ML Inference API", version="0.3")
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MODEL = None
-MODEL_VERSION = "unknown"
-
+MODEL_VERSION = None
+MODEL_THRESHOLD = 0.5
+MODEL_METADATA = {}
 
 def _reload_model():
-    global MODEL, MODEL_VERSION
-    MODEL, MODEL_VERSION = load_model(device=device)
+    global MODEL, MODEL_VERSION, MODEL_THRESHOLD, MODEL_METADATA
+    MODEL, MODEL_VERSION, MODEL_THRESHOLD, MODEL_METADATA = load_model(device=device)
 
 
 def _served_version() -> str:
@@ -80,7 +83,7 @@ async def predict(
         if MODEL is None:
             _reload_model()
 
-        img = Image.open(file.file)
+        img = read_and_validate_image(file)
         x, gray_np = preprocess_image(img, device=device)
 
         start = time.perf_counter()
@@ -91,7 +94,7 @@ async def predict(
 
         record_latency(latency_ms)
 
-        label = "Pneumonia" if prob >= 0.5 else "Normal"
+        label = "Pneumonia" if prob >= MODEL_THRESHOLD else "Normal"
         hist = extract_intensity_histogram(gray_np, bins=32)
 
         log_request(
@@ -111,9 +114,24 @@ async def predict(
                 "label": label,
                 "probability": round(prob, 6),
                 "latency_ms": round(latency_ms, 3),
+                "threshold_used": MODEL_THRESHOLD,
                 "model_version": MODEL_VERSION,
             }
         )
+    
+    except HTTPException as e:
+        record_error()
+        log_request(
+            ts_utc=ts,
+            model_version=MODEL_VERSION or "unknown",
+            latency_ms=0.0,
+            label="error",
+            probability=0.0,
+            hist=None,
+            error=str(e.detail),
+            true_label=true_label,
+        )
+        return JSONResponse({"error": e.detail}, status_code=e.status_code)
 
     except Exception as e:
         record_error()
@@ -126,5 +144,6 @@ async def predict(
             probability=0.0,
             hist=None,
             error=str(e),
+            true_label=true_label,
         )
         return JSONResponse({"error": str(e)}, status_code=500)
