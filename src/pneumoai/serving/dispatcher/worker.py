@@ -1,11 +1,9 @@
 from datetime import UTC, datetime
-import time
 from typing import Optional
 
-from pneumoai.models.loader import load_model_bundle
+from pneumoai.serving.dispatcher.inference_service import run_inference
 from pneumoai.serving.dispatcher.status_store import set_result
 from pneumoai.serving.dispatcher.task_store import mark_task_completed, pop_next_queued_task
-from pneumoai.preprocessing.image import read_image_bytes
 
 
 def process_next_task() -> Optional[dict]:
@@ -17,25 +15,15 @@ def process_next_task() -> Optional[dict]:
     image_uri = task["image_uri"]
     true_label = task.get("true_label")
 
-    with open(image_uri, "rb") as f:
-        raw = f.read()
-
-    image_array = read_image_bytes(raw)
-
-    start = time.perf_counter()
-    model, version, threshold, metadata = load_model_bundle()
-
-    probability = float(model.predict_proba(image_array))
-    prediction = "PNEUMONIA" if probability >= threshold else "NORMAL"
-    latency_ms = (time.perf_counter() - start) * 1000.0
+    inference = run_inference(image_uri=image_uri)
 
     result = {
         "request_id": request_id,
-        "model_version": version,
-        "prediction": prediction,
-        "probability": probability,
-        "threshold": threshold,
-        "latency_ms": latency_ms,
+        "model_version": inference["model_version"],
+        "prediction": inference["prediction"],
+        "probability": inference["probability"],
+        "threshold": inference["threshold"],
+        "latency_ms": inference["latency_ms"],
         "true_label": true_label,
         "created_at": datetime.now(UTC).isoformat(),
     }

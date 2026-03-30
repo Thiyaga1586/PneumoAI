@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     triton_enabled: bool = False
     triton_url: str = "localhost:8001"
 
+    inference_backend: str = "local"
+
+    triton_fallback_to_local: bool = True
+    
     mlflow_tracking_uri: str = "file:./mlruns"
 
     model_config = SettingsConfigDict(

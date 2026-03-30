@@ -1,4 +1,7 @@
 import time
+from typing import Optional
+
+import torch
 from fastapi import APIRouter, UploadFile, File, Form
 
 from pneumoai.common.ids import generate_request_id
@@ -14,7 +17,7 @@ router = APIRouter()
 @router.post("/predict-sync", response_model=PredictResponse)
 async def predict_sync(
     file: UploadFile = File(...),
-    true_label: str | None = Form(default=None),
+    true_label: Optional[str] = Form(default=None),
 ):
     await validate_upload(file)
     raw = await file.read()
@@ -25,7 +28,11 @@ async def predict_sync(
     start = time.perf_counter()
     model, version, threshold, metadata = load_model_bundle()
 
-    probability = float(model.predict_proba(image_array))
+    with torch.no_grad():
+        tensor = torch.tensor(image_array, dtype=torch.float32)
+        logits = model(tensor)
+        probability = float(torch.sigmoid(logits).squeeze().item())
+
     prediction = "PNEUMONIA" if probability >= threshold else "NORMAL"
     latency_ms = (time.perf_counter() - start) * 1000.0
 
