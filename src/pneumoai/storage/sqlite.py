@@ -1,5 +1,6 @@
 import sqlite3
 from pathlib import Path
+
 from pneumoai.common.settings import settings
 
 
@@ -12,6 +13,7 @@ def get_connection():
 def init_db():
     conn = get_connection()
     cursor = conn.cursor()
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS predictions (
             request_id TEXT PRIMARY KEY,
@@ -24,5 +26,16 @@ def init_db():
             created_at TEXT
         )
     """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS tasks (
+            request_id TEXT PRIMARY KEY,
+            status TEXT NOT NULL,
+            submitted_at TEXT NOT NULL,
+            image_uri TEXT NOT NULL,
+            true_label TEXT
+        )
+    """)
+
     conn.commit()
     conn.close()
