@@ -1,13 +1,22 @@
 from typing import Optional
 
 import numpy as np
-import tritonclient.grpc as grpcclient
+try:
+    import tritonclient.grpc as grpcclient
+    TRITON_AVAILABLE = True
+except ImportError:
+    grpcclient = None
+    TRITON_AVAILABLE = False
 
 from pneumoai.preprocessing.image import read_image_bytes
 
 
 class TritonInferenceClient:
     def __init__(self, url: str):
+        if not TRITON_AVAILABLE:
+            raise RuntimeError(
+                "Triton client is not installed. Install tritonclient if using Triton backend."
+            )
         self.client = grpcclient.InferenceServerClient(url=url)
 
     def predict(self, image_uri: str, requested_version: Optional[str] = None) -> dict:
