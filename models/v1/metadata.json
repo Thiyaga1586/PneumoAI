@@ -1,5 +1,9 @@
 {
   "version": "v1",
   "architecture": "baseline",
-  "notes": "initial local model metadata"
+  "image_size": 224,
+  "color_mode": "grayscale",
+  "input_channels": 1,
+  "class_names": ["NORMAL", "PNEUMONIA"],
+  "notes": "Initial local model metadata for PneumoAI inference."
 }
