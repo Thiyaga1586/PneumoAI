@@ -11,7 +11,7 @@ from pneumoai.models.registry import (
 )
 
 
-def _resolve_device() -> str:
+def resolve_device() -> str:
     if settings.model_device == "auto":
         return "cuda" if torch.cuda.is_available() else "cpu"
     return settings.model_device
@@ -53,7 +53,7 @@ def load_model_bundle(version: str | None = None):
 
     validate_model_artifacts(version)
 
-    device = _resolve_device()
+    device = resolve_device()
     model = build_model(version)
     model_path = _model_path(version)
 

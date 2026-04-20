@@ -4,7 +4,7 @@ from typing import Optional
 import torch
 
 from pneumoai.common.settings import settings
-from pneumoai.models.loader import load_model_bundle
+from pneumoai.models.loader import load_model_bundle, resolve_device
 from pneumoai.preprocessing.image import read_image_bytes
 from pneumoai.serving.triton.client import TritonInferenceClient
 
@@ -14,12 +14,17 @@ def run_local_inference(image_uri: str, requested_version: Optional[str] = None)
         raw = f.read()
 
     image_array = read_image_bytes(raw)
+    device = resolve_device()
 
     start = time.perf_counter()
     model, version, threshold, metadata = load_model_bundle(requested_version)
 
     with torch.no_grad():
-        tensor = torch.tensor(image_array, dtype=torch.float32)
+        tensor = torch.tensor(
+            image_array,
+            dtype=torch.float32,
+            device=device,
+        )
         logits = model(tensor)
         probability = float(torch.sigmoid(logits).squeeze().item())
 
