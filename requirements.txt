@@ -1,27 +1,23 @@
-# Web & API
 fastapi
 uvicorn[standard]
 python-multipart
 pydantic-settings
 httpx
 
-# Deep Learning & Computer Vision
---index-url https://download.pytorch.org/whl/cu121
-torch>=2.6.0
+torch
 torchvision
 torchaudio
 timm
 numpy
-opencv-python-headless
 pillow
+opencv-python-headless
 tqdm
 
-# Export & Inference
 onnx
 onnxscript
 tritonclient[grpc]
 
-# UI & Testing
 gradio==5.6.0
 gradio_client==1.4.3
+
 pytest
