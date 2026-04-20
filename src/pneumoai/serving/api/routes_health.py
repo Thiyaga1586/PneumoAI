@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Query, Response
 from pneumoai.common.settings import settings
 from pneumoai.models.loader import resolve_device, validate_model_artifacts
 from pneumoai.monitoring.drift import detect_prediction_drift
-from pneumoai.monitoring.metrics import render_metrics
+from pneumoai.monitoring.metrics import DRIFT_CHECKS_TOTAL, DRIFT_SCORE, render_metrics
 from pneumoai.storage.sqlite import init_db
 
 router = APIRouter()
@@ -36,11 +36,15 @@ def drift(
     threshold: float = Query(default=0.08, gt=0.0, lt=1.0),
 ):
     try:
-        return detect_prediction_drift(
+        result = detect_prediction_drift(
             version=version,
             limit=limit,
             threshold=threshold,
         )
+        DRIFT_CHECKS_TOTAL.inc()
+        if result.get("js_divergence") is not None:
+            DRIFT_SCORE.observe(result["js_divergence"])
+        return result
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
