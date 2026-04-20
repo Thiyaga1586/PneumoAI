@@ -16,5 +16,6 @@ tqdm
 onnx
 onnxscript
 tritonclient[grpc]
+prometheus-client
 
 pytest

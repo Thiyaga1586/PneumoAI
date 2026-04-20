@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query, Response
 
 from pneumoai.common.settings import settings
 from pneumoai.models.loader import resolve_device, validate_model_artifacts
 from pneumoai.monitoring.drift import detect_prediction_drift
+from pneumoai.monitoring.metrics import render_metrics
 from pneumoai.storage.sqlite import init_db
 
 router = APIRouter()
@@ -15,14 +16,17 @@ def health():
 
 @router.get("/ready")
 def ready():
-    init_db()
-    validate_model_artifacts(settings.default_model_version)
-    return {
-        "status": "ready",
-        "model_version": settings.default_model_version,
-        "device": resolve_device(),
-        "backend": settings.inference_backend,
-    }
+    try:
+        init_db()
+        validate_model_artifacts(settings.default_model_version)
+        return {
+            "status": "ready",
+            "model_version": settings.default_model_version,
+            "device": resolve_device(),
+            "backend": settings.inference_backend,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @router.get("/drift")
@@ -31,8 +35,21 @@ def drift(
     limit: int = Query(default=500, ge=20, le=5000),
     threshold: float = Query(default=0.08, gt=0.0, lt=1.0),
 ):
-    return detect_prediction_drift(
-        version=version,
-        limit=limit,
-        threshold=threshold,
-    )
+    try:
+        return detect_prediction_drift(
+            version=version,
+            limit=limit,
+            threshold=threshold,
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="Drift detection failed") from exc
+
+
+@router.get("/metrics")
+def metrics():
+    payload, content_type = render_metrics()
+    return Response(content=payload, media_type=content_type)
