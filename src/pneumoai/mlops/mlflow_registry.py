@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import mlflow
@@ -7,7 +8,15 @@ import mlflow
 from pneumoai.common.settings import settings
 
 
+def _prepare_tracking_backend() -> None:
+    uri = settings.mlflow_tracking_uri
+    if uri.startswith("sqlite:///"):
+        db_path = uri.replace("sqlite:///", "", 1)
+        Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+
+
 def configure_mlflow() -> None:
+    _prepare_tracking_backend()
     mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
     mlflow.set_experiment(settings.mlflow_experiment_name)
 

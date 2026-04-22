@@ -1,0 +1,23 @@
+artifact_path: file:C:/Users/Thiyaga/OneDrive - SSN-Institute/Projects/Ai and Ml projects/PneumoAI_final/mlruns/383846143649835287/models/m-929273d5e5db454b8595e530c1d17dfe/artifacts
+flavors:
+  python_function:
+    config:
+      device: null
+    data: data
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.pytorch
+    pickle_module_name: mlflow.pytorch.pickle_module
+    python_version: 3.13.5
+  pytorch:
+    code: null
+    model_data: data
+    pytorch_version: 2.7.1+cu118
+mlflow_version: 3.11.1
+model_id: m-929273d5e5db454b8595e530c1d17dfe
+model_size_bytes: 85957287
+model_uuid: m-929273d5e5db454b8595e530c1d17dfe
+prompts: null
+run_id: 546ec666de444deb8d48d16dc6cf6c30
+utc_time_created: '2026-04-22 17:08:09.456383'

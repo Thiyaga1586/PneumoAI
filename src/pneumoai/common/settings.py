@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     max_upload_mb: int = 10
     admin_api_key: str = "change-me"
 
-    mlflow_tracking_uri: str = "file:./mlruns"
+    mlflow_tracking_uri: str = "sqlite:///data/runtime/mlflow.db"
     mlflow_experiment_name: str = "pneumoai"
 
     redis_enabled: bool = True

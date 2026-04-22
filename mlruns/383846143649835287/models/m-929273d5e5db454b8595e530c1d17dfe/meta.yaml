@@ -1,0 +1,11 @@
+artifact_location: file:C:/Users/Thiyaga/OneDrive - SSN-Institute/Projects/Ai and
+  Ml projects/PneumoAI_final/mlruns/383846143649835287/models/m-929273d5e5db454b8595e530c1d17dfe/artifacts
+creation_timestamp: 1776877689107
+experiment_id: '383846143649835287'
+last_updated_timestamp: 1776877732978
+model_id: m-929273d5e5db454b8595e530c1d17dfe
+model_type: null
+name: model
+source_run_id: 546ec666de444deb8d48d16dc6cf6c30
+status: 2
+status_message: null

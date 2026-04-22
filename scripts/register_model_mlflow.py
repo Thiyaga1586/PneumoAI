@@ -22,7 +22,7 @@ def main() -> None:
             if isinstance(value, (str, int, float, bool)):
                 mlflow.log_param(f"metadata.{key}", value)
 
-        mlflow.pytorch.log_model(model, artifact_path="model")
+        mlflow.pytorch.log_model(model, name="model")
 
         print(
             json.dumps(
