@@ -1,47 +1,52 @@
+from __future__ import annotations
+
+from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
 from pneumoai.common.ids import generate_request_id
+from pneumoai.common.settings import settings
+from pneumoai.monitoring.metrics import ASYNC_REQUESTS_TOTAL
 from pneumoai.preprocessing.validation import validate_upload
-from pneumoai.serving.dispatcher.producer import LocalPredictionProducer
-from pneumoai.serving.dispatcher.status_store import get_result
-from pneumoai.storage.request_store import save_request_image
+from pneumoai.queue.jobs import enqueue_prediction_job, get_job_status
 
 router = APIRouter()
-producer = LocalPredictionProducer()
+
+
+def _runtime_upload_dir() -> Path:
+    path = Path(settings.runtime_dir) / "uploads"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
 
 @router.post("/predict")
-async def predict(
+async def create_async_prediction(
     file: UploadFile = File(...),
     true_label: Optional[str] = Form(default=None),
 ):
     await validate_upload(file)
 
     request_id = generate_request_id()
-    raw = await file.read()
-    image_uri = save_request_image(
-        request_id=request_id,
-        raw_bytes=raw,
-        filename=file.filename or "upload.png",
-    )
+    suffix = Path(file.filename or "upload.bin").suffix or ".bin"
+    target_path = _runtime_upload_dir() / f"{request_id}{suffix}"
 
-    producer.publish(
+    raw = await file.read()
+    with open(target_path, "wb") as f:
+        f.write(raw)
+
+    ASYNC_REQUESTS_TOTAL.inc()
+
+    return enqueue_prediction_job(
         request_id=request_id,
-        image_uri=image_uri,
+        image_uri=str(target_path),
         true_label=true_label,
     )
 
-    return {
-        "request_id": request_id,
-        "status": "queued",
-    }
-
 
 @router.get("/predict/{request_id}")
-def get_prediction(request_id: str):
-    result = get_result(request_id)
-    if result is None:
-        raise HTTPException(status_code=404, detail="Result not found")
-    return result
+def get_async_prediction_status(request_id: str):
+    job = get_job_status(request_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Request not found")
+    return job

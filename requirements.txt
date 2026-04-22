@@ -4,9 +4,9 @@ python-multipart
 pydantic-settings
 httpx
 
-torch
-torchvision
-torchaudio
+torch==2.6.0
+torchvision==0.21.0
+torchaudio==2.6.0
 timm
 numpy
 pillow
@@ -16,6 +16,8 @@ tqdm
 onnx
 onnxscript
 tritonclient[grpc]
-prometheus-client
+mlflow
 
+prometheus-client
+redis
 pytest

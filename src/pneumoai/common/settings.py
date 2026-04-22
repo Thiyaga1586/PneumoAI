@@ -26,6 +26,12 @@ class Settings(BaseSettings):
     admin_api_key: str = "change-me"
 
     mlflow_tracking_uri: str = "file:./mlruns"
+    mlflow_experiment_name: str = "pneumoai"
+
+    redis_enabled: bool = True
+    redis_url: str = "redis://localhost:6379/0"
+    redis_queue_key: str = "pneumoai:queue:predict"
+    worker_poll_interval_seconds: float = 1.0
 
     model_config = SettingsConfigDict(
         env_file=".env",
