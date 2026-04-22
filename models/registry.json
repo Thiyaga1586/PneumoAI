@@ -13,6 +13,15 @@
       "notes": "initial-mlflow-test",
       "promoted_by": "admin_api",
       "timestamp": "2026-04-22T16:25:05.010220+00:00"
+    },
+    {
+      "event": "promote",
+      "version": "v1",
+      "previous": "v1",
+      "run_id": null,
+      "notes": "manual-test",
+      "promoted_by": "admin_api",
+      "timestamp": "2026-04-22T18:38:35.765070+00:00"
     }
   ]
 }
