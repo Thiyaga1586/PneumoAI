@@ -1,5 +1,9 @@
+from __future__ import annotations
+
 import json
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 from pneumoai.common.settings import settings
 
@@ -13,6 +17,7 @@ def _load_registry() -> dict:
             "current": settings.default_model_version,
             "previous": None,
             "available": [settings.default_model_version],
+            "history": [],
         }
 
     with open(REGISTRY_PATH, "r", encoding="utf-8") as f:
@@ -21,6 +26,7 @@ def _load_registry() -> dict:
     data.setdefault("current", settings.default_model_version)
     data.setdefault("previous", None)
     data.setdefault("available", [data["current"]])
+    data.setdefault("history", [])
 
     if data["current"] not in data["available"]:
         data["available"].append(data["current"])
@@ -62,7 +68,7 @@ def load_model_metadata(version: str) -> dict:
         return json.load(f)
 
 
-def promote_version(version: str) -> dict:
+def _validate_promotable_version(version: str) -> None:
     version_dir = MODELS_DIR / version
     required = [
         version_dir / "model.pth",
@@ -73,6 +79,16 @@ def promote_version(version: str) -> dict:
     if missing:
         raise FileNotFoundError(f"Cannot promote version '{version}'. Missing: {missing}")
 
+
+def promote_version(
+    version: str,
+    *,
+    run_id: str | None = None,
+    notes: str | None = None,
+    promoted_by: str | None = None,
+) -> dict:
+    _validate_promotable_version(version)
+
     registry = _load_registry()
     current = registry["current"]
 
@@ -82,11 +98,27 @@ def promote_version(version: str) -> dict:
     if version not in registry["available"]:
         registry["available"].append(version)
 
+    registry.setdefault("history", []).append(
+        {
+            "event": "promote",
+            "version": version,
+            "previous": current,
+            "run_id": run_id,
+            "notes": notes,
+            "promoted_by": promoted_by,
+            "timestamp": datetime.now(UTC).isoformat(),
+        }
+    )
+
     _save_registry(registry)
     return registry
 
 
-def rollback_version() -> dict:
+def rollback_version(
+    *,
+    notes: str | None = None,
+    rolled_back_by: str | None = None,
+) -> dict:
     registry = _load_registry()
     previous = registry.get("previous")
 
@@ -101,6 +133,17 @@ def rollback_version() -> dict:
         registry["available"].append(previous)
     if current not in registry["available"]:
         registry["available"].append(current)
+
+    registry.setdefault("history", []).append(
+        {
+            "event": "rollback",
+            "version": previous,
+            "previous": current,
+            "notes": notes,
+            "rolled_back_by": rolled_back_by,
+            "timestamp": datetime.now(UTC).isoformat(),
+        }
+    )
 
     _save_registry(registry)
     return registry
