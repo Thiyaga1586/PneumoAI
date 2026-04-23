@@ -1,0 +1,23 @@
+{
+  "required_files": [
+    "model.pth",
+    "metadata.json",
+    "threshold.json"
+  ],
+  "metadata_required_fields": [
+    "version",
+    "architecture",
+    "image_size",
+    "color_mode",
+    "input_channels",
+    "class_names",
+    "status",
+    "created_at",
+    "notes"
+  ],
+  "threshold_required_fields": [
+    "version",
+    "threshold",
+    "metric"
+  ]
+}

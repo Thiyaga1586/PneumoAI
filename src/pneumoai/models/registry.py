@@ -92,6 +92,21 @@ def promote_version(
     registry = _load_registry()
     current = registry["current"]
 
+    if version == current:
+        registry.setdefault("history", []).append(
+            {
+                "event": "reaffirm",
+                "version": version,
+                "previous": registry.get("previous"),
+                "run_id": run_id,
+                "notes": notes,
+                "promoted_by": promoted_by,
+                "timestamp": datetime.now(UTC).isoformat(),
+            }
+        )
+        _save_registry(registry)
+        return registry
+
     registry["previous"] = current
     registry["current"] = version
 

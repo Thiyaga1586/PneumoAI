@@ -1,27 +1,16 @@
 {
   "current": "v1",
-  "previous": "v1",
-  "available": [
-    "v1"
-  ],
+  "previous": null,
+  "available": ["v1"],
   "history": [
     {
-      "event": "promote",
+      "event": "bootstrap",
       "version": "v1",
-      "previous": "v1",
-      "run_id": "b13a4967c6414c658ea78d19aebe7a6a",
-      "notes": "initial-mlflow-test",
-      "promoted_by": "admin_api",
-      "timestamp": "2026-04-22T16:25:05.010220+00:00"
-    },
-    {
-      "event": "promote",
-      "version": "v1",
-      "previous": "v1",
+      "previous": null,
       "run_id": null,
-      "notes": "manual-test",
-      "promoted_by": "admin_api",
-      "timestamp": "2026-04-22T18:38:35.765070+00:00"
+      "notes": "Initial champion baseline for PneumoAI.",
+      "promoted_by": "system",
+      "timestamp": "2026-04-23T00:00:00Z"
     }
   ]
 }
