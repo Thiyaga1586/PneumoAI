@@ -11,4 +11,6 @@ venv/
 env/
 .DS_Store
 Thumbs.db
-
+mlruns/
+*.db
+*.egg-info/
