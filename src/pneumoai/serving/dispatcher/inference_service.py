@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import threading
 import time
 from typing import Optional
 
@@ -5,8 +8,38 @@ import torch
 
 from pneumoai.common.settings import settings
 from pneumoai.models.loader import load_model_bundle, resolve_device
+from pneumoai.models.registry import get_current_version
 from pneumoai.preprocessing.image import read_image_bytes
 from pneumoai.serving.triton.client import TritonInferenceClient
+
+
+_MODEL_LOCK = threading.Lock()
+_MODEL_CACHE: dict[str, object] = {}
+
+
+def clear_model_cache() -> None:
+    with _MODEL_LOCK:
+        _MODEL_CACHE.clear()
+
+
+def _get_model_bundle(requested_version: Optional[str] = None):
+    version = requested_version or get_current_version()
+
+    with _MODEL_LOCK:
+        cached = _MODEL_CACHE.get(version)
+        if cached is not None:
+            return cached
+
+        model, resolved_version, threshold, metadata = load_model_bundle(version)
+        bundle = {
+            "model": model,
+            "version": resolved_version,
+            "threshold": threshold,
+            "metadata": metadata,
+            "device": resolve_device(),
+        }
+        _MODEL_CACHE[resolved_version] = bundle
+        return bundle
 
 
 def run_local_inference(image_uri: str, requested_version: Optional[str] = None) -> dict:
@@ -14,12 +47,16 @@ def run_local_inference(image_uri: str, requested_version: Optional[str] = None)
         raw = f.read()
 
     image_array = read_image_bytes(raw)
-    device = resolve_device()
+    bundle = _get_model_bundle(requested_version)
+
+    model = bundle["model"]
+    version = bundle["version"]
+    threshold = float(bundle["threshold"])
+    device = bundle["device"]
 
     start = time.perf_counter()
-    model, version, threshold, metadata = load_model_bundle(requested_version)
 
-    with torch.no_grad():
+    with torch.inference_mode():
         tensor = torch.tensor(
             image_array,
             dtype=torch.float32,
@@ -49,7 +86,7 @@ def run_triton_inference(image_uri: str, requested_version: Optional[str] = None
     latency_ms = (time.perf_counter() - start) * 1000.0
 
     threshold = 0.5
-    probability = result["probability"]
+    probability = float(result["probability"])
     prediction = "PNEUMONIA" if probability >= threshold else "NORMAL"
 
     return {

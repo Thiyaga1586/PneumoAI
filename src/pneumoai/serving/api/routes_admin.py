@@ -14,6 +14,7 @@ from pneumoai.models.registry import (
     rollback_version,
 )
 from pneumoai.monitoring.metrics import ADMIN_ACTIONS_TOTAL
+from pneumoai.serving.dispatcher.inference_service import clear_model_cache
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 logger = logging.getLogger(__name__)
@@ -69,6 +70,7 @@ def admin_promote(
                 notes=notes,
                 promoted_by="admin_api",
             )
+            clear_model_cache()
             ADMIN_ACTIONS_TOTAL.labels(action="promote_gated").inc()
         else:
             result = promote_version(
@@ -77,6 +79,7 @@ def admin_promote(
                 notes=notes,
                 promoted_by="admin_api",
             )
+            clear_model_cache()
             ADMIN_ACTIONS_TOTAL.labels(action="promote").inc()
 
         if run_id:
@@ -118,6 +121,7 @@ def admin_rollback(
             notes=notes,
             rolled_back_by="admin_api",
         )
+        clear_model_cache()
         ADMIN_ACTIONS_TOTAL.labels(action="rollback").inc()
         logger.info("model_rolled_back", extra={"request_id": "rollback"})
         return result
