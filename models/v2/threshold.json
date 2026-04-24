@@ -1,0 +1,5 @@
+{
+  "version": "v2",
+  "threshold": 0.45,
+  "metric": "validation_f1"
+}

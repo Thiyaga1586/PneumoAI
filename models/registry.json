@@ -1,7 +1,10 @@
 {
-  "current": "v1",
-  "previous": null,
-  "available": ["v1"],
+  "current": "v2",
+  "previous": "v1",
+  "available": [
+    "v1",
+    "v2"
+  ],
   "history": [
     {
       "event": "bootstrap",
@@ -11,6 +14,15 @@
       "notes": "Initial champion baseline for PneumoAI.",
       "promoted_by": "system",
       "timestamp": "2026-04-23T00:00:00Z"
+    },
+    {
+      "event": "promote",
+      "version": "v2",
+      "previous": "v1",
+      "run_id": "c92cc3793ae64c6fb5b5c9dced9a386e",
+      "notes": "real-v2-gated-promotion",
+      "promoted_by": "admin_api",
+      "timestamp": "2026-04-24T06:15:46.165831+00:00"
     }
   ]
 }
