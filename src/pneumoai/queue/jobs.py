@@ -79,5 +79,6 @@ def get_job_status(request_id: str) -> Optional[dict]:
 
 def update_job_status(request_id: str, **fields) -> None:
     client = get_redis_client()
-    serialized = {k: "" if v is None else str(v) for k, v in fields.items()}
+    payload = {"request_id": request_id, **fields}
+    serialized = {k: "" if v is None else str(v) for k, v in payload.items()}
     client.hset(job_key(request_id), mapping=serialized)

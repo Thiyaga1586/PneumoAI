@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 from PIL import Image
 
 from pneumoai.serving.api.app import app
+from pneumoai.models.registry import get_current_version
 
 client = TestClient(app)
 
@@ -24,5 +25,5 @@ def test_predict_sync():
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "completed"
-    assert body["model_version"] == "v1"
+    assert body["model_version"] == get_current_version()
     assert body["prediction"] in {"PNEUMONIA", "NORMAL"}
