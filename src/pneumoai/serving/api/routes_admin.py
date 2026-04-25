@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import logging
 
-import mlflow
 from fastapi import APIRouter, Header, HTTPException, Query
 
 from pneumoai.common.settings import settings
-from pneumoai.mlops.mlflow_registry import configure_mlflow
 from pneumoai.mlops.promotion_service import promote_with_gate
 from pneumoai.models.registry import (
     get_registry,
@@ -18,6 +16,31 @@ from pneumoai.serving.dispatcher.inference_service import clear_model_cache
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 logger = logging.getLogger(__name__)
+
+def _try_tag_mlflow_promotion(
+    *,
+    run_id: str | None,
+    version: str,
+    notes: str | None,
+    mode: str,
+) -> None:
+    if not run_id:
+        return
+
+    try:
+        import mlflow
+        from pneumoai.mlops.mlflow_registry import configure_mlflow
+
+        configure_mlflow()
+        mlflow.set_tag("promotion.version", version)
+        mlflow.set_tag("promotion.notes", notes or "")
+        mlflow.set_tag("promotion.source", "admin_api")
+        mlflow.set_tag("promotion.mode", mode)
+    except Exception:
+        logger.exception(
+            "mlflow_tag_update_failed",
+            extra={"request_id": f"promote-{version}"},
+        )
 
 
 def _require_admin(x_api_key: str | None) -> None:
@@ -35,10 +58,10 @@ def admin_registry(x_api_key: str | None = Header(default=None)):
 @router.get("/mlflow")
 def admin_mlflow_info(x_api_key: str | None = Header(default=None)):
     _require_admin(x_api_key)
-    configure_mlflow()
     return {
         "tracking_uri": settings.mlflow_tracking_uri,
         "experiment_name": settings.mlflow_experiment_name,
+        "runtime_mlflow_optional": True,
     }
 
 
@@ -82,18 +105,12 @@ def admin_promote(
             clear_model_cache()
             ADMIN_ACTIONS_TOTAL.labels(action="promote").inc()
 
-        if run_id:
-            configure_mlflow()
-            try:
-                mlflow.set_tag("promotion.version", version)
-                mlflow.set_tag("promotion.notes", notes or "")
-                mlflow.set_tag("promotion.source", "admin_api")
-                mlflow.set_tag("promotion.mode", "gated" if gated_mode else "manual")
-            except Exception:
-                logger.exception(
-                    "mlflow_tag_update_failed",
-                    extra={"request_id": f"promote-{version}"},
-                )
+        _try_tag_mlflow_promotion(
+            run_id=run_id,
+            version=version,
+            notes=notes,
+            mode="gated" if gated_mode else "manual",
+        )
 
         logger.info(
             "model_promoted",

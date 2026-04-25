@@ -10,7 +10,6 @@ from pneumoai.common.settings import settings
 from pneumoai.models.loader import load_model_bundle, resolve_device
 from pneumoai.models.registry import get_current_version
 from pneumoai.preprocessing.image import read_image_bytes
-from pneumoai.serving.triton.client import TritonInferenceClient
 
 
 _MODEL_LOCK = threading.Lock()
@@ -79,6 +78,8 @@ def run_local_inference(image_uri: str, requested_version: Optional[str] = None)
 
 
 def run_triton_inference(image_uri: str, requested_version: Optional[str] = None) -> dict:
+    from pneumoai.serving.triton.client import TritonInferenceClient
+
     client = TritonInferenceClient(settings.triton_url)
 
     start = time.perf_counter()
