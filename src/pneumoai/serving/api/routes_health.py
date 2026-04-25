@@ -5,6 +5,7 @@ from pneumoai.models.loader import resolve_device, validate_model_artifacts
 from pneumoai.monitoring.drift import detect_prediction_drift
 from pneumoai.monitoring.metrics import DRIFT_CHECKS_TOTAL, DRIFT_SCORE, render_metrics
 from pneumoai.storage.sqlite import init_db
+from pneumoai.models.registry import get_current_version
 
 router = APIRouter()
 
@@ -18,10 +19,11 @@ def health():
 def ready():
     try:
         init_db()
-        validate_model_artifacts(settings.default_model_version)
+        current_version = get_current_version()
+        validate_model_artifacts(current_version)
         return {
             "status": "ready",
-            "model_version": settings.default_model_version,
+            "model_version": current_version,
             "device": resolve_device(),
             "backend": settings.inference_backend,
         }
