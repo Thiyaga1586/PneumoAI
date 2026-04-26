@@ -54,11 +54,15 @@ def test_triton_client_predict_returns_probability(tmp_path, monkeypatch):
         InferInput = FakeInferInput
         InferRequestedOutput = FakeRequestedOutput
 
-
     monkeypatch.setattr(
         triton_client_module,
         "grpcclient",
         FakeGrpcModule,
+    )
+    monkeypatch.setattr(
+        triton_client_module,
+        "TRITON_AVAILABLE",
+        True,
     )
 
     client = TritonInferenceClient("localhost:8001")
