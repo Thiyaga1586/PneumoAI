@@ -1,0 +1,64 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: pneumoai-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  pneumoai:
+    image: ghcr.io/thiyaga1586/pneumoai:latest
+    container_name: pneumoai
+    ports:
+      - "8080:8000"
+    env_file:
+      - .env.production
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MODEL_DEVICE=cpu
+    volumes:
+      - pneumoai_runtime:/app/data/runtime
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready', timeout=5).read()"
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  worker:
+    image: ghcr.io/thiyaga1586/pneumoai:latest
+    container_name: pneumoai-worker
+    command: ["python", "scripts/run_worker.py"]
+    env_file:
+      - .env.production
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MODEL_DEVICE=cpu
+    volumes:
+      - pneumoai_runtime:/app/data/runtime
+    depends_on:
+      redis:
+        condition: service_healthy
+      pneumoai:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  pneumoai_runtime:
