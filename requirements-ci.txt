@@ -1,0 +1,5 @@
+-r requirements-serving.txt
+
+pytest==9.0.3
+onnx==1.21.0
+onnxscript==0.7.0
