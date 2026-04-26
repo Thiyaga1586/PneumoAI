@@ -57,7 +57,10 @@ def load_model_bundle(version: str | None = None):
     model = build_model(version)
     model_path = _model_path(version)
 
-    checkpoint = torch.load(model_path, map_location=device)
+    try:
+        checkpoint = torch.load(model_path, map_location=device, weights_only=True)
+    except Exception:
+        checkpoint = torch.load(model_path, map_location=device, weights_only=False)
     state_dict = _extract_state_dict(checkpoint)
 
     model.load_state_dict(state_dict, strict=True)
