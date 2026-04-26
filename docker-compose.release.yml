@@ -15,8 +15,8 @@ services:
   pneumoai:
     image: ghcr.io/thiyaga1586/pneumoai@sha256:297f4b4a3640f51cd0a279ded702de3bdc2c7cfc9ce0507de34cc2dc0ba85dfd
     container_name: pneumoai
-    ports:
-      - "8080:8000"
+    expose:
+      - "8000"
     env_file:
       - .env.production
     environment:
@@ -59,6 +59,19 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: pneumoai-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      pneumoai:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   redis_data:
   pneumoai_runtime:
+
