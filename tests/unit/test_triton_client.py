@@ -49,10 +49,13 @@ def test_triton_client_predict_returns_probability(tmp_path, monkeypatch):
 
     from pneumoai.serving.triton import client as triton_client_module
 
+    class FakeModule:
+        InferenceServerClient = FakeGrpcClient
+
     monkeypatch.setattr(
-        triton_client_module.grpcclient,
-        "InferenceServerClient",
-        FakeGrpcClient,
+        triton_client_module,
+        "grpcclient",
+        FakeModule,
     )
     monkeypatch.setattr(
         triton_client_module.grpcclient,

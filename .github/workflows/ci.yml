@@ -13,6 +13,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Verify model artifacts
+        run: |
+          git lfs pull
+          python - <<'PY'
+          from pathlib import Path
+          p = Path("models/v2/model.pth")
+          head = p.read_bytes()[:80]
+          print(head)
+          assert not head.startswith(b"version https://git-lfs.github.com"), "LFS pointer checked out instead of model"
+          PY
 
       - uses: actions/setup-python@v5
         with:
@@ -37,6 +50,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Verify model artifacts
+        run: |
+          git lfs pull
+          python - <<'PY'
+          from pathlib import Path
+          p = Path("models/v2/model.pth")
+          head = p.read_bytes()[:80]
+          print(head)
+          assert not head.startswith(b"version https://git-lfs.github.com"), "LFS pointer checked out instead of model"
+          PY
 
       - name: Build Docker stack
         run: |
