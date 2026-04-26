@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 import logging
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from pneumoai.common.logging import configure_logging
 from pneumoai.common.settings import settings
@@ -41,6 +42,20 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.app_name,
     lifespan=lifespan,
+)
+
+allowed_origins = [
+    origin.strip()
+    for origin in settings.cors_origins.split(",")
+    if origin.strip()
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
 )
 
 app.include_router(health_router)

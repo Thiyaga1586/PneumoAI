@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     redis_queue_key: str = "pneumoai:queue:predict"
     worker_poll_interval_seconds: float = 1.0
 
+    cors_origins: str = "http://localhost:5173"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
