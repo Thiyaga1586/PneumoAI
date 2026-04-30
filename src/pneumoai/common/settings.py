@@ -35,6 +35,8 @@ class Settings(BaseSettings):
 
     cors_origins: str = "http://localhost:5173"
 
+    database_url: str | None = None
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

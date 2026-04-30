@@ -1,62 +1,17 @@
-from __future__ import annotations
+from sqlalchemy import create_engine
 
-import sqlite3
-from pathlib import Path
+_engine = None
 
-from pneumoai.common.settings import settings
+def init_db():
+    global _engine
 
+    from pneumoai.common.settings import settings
 
-_DB_INITIALIZED = False
+    db_url = settings.database_url
 
+    if not db_url:
+        raise RuntimeError("DATABASE_URL not set")
 
-def _db_path() -> Path:
-    path = Path(settings.sqlite_path).expanduser().resolve()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    return path
+    _engine = create_engine(db_url, pool_pre_ping=True)
 
-
-def init_db(force: bool = False) -> None:
-    global _DB_INITIALIZED
-
-    if _DB_INITIALIZED and not force:
-        return
-
-    db_path = _db_path()
-    conn = sqlite3.connect(db_path)
-    try:
-        cursor = conn.cursor()
-
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS predictions (
-            request_id TEXT PRIMARY KEY,
-            model_version TEXT NOT NULL,
-            prediction TEXT NOT NULL,
-            probability REAL NOT NULL,
-            threshold REAL NOT NULL,
-            latency_ms REAL NOT NULL,
-            true_label TEXT,
-            created_at TEXT NOT NULL
-        )
-        """)
-
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS tasks (
-            request_id TEXT PRIMARY KEY,
-            status TEXT NOT NULL,
-            submitted_at TEXT NOT NULL,
-            image_uri TEXT NOT NULL,
-            true_label TEXT
-        )
-        """)
-
-        conn.commit()
-        _DB_INITIALIZED = True
-    finally:
-        conn.close()
-
-
-def get_connection() -> sqlite3.Connection:
-    init_db()
-    conn = sqlite3.connect(_db_path())
-    conn.row_factory = sqlite3.Row
-    return conn
+    return _engine
