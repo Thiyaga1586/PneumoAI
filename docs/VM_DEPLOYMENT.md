@@ -6,7 +6,7 @@ Recommended minimum:
 
 - Ubuntu 22.04/24.04
 - 2 vCPU
-- 4–8 GB RAM
+- 4-8 GB RAM
 - 30+ GB disk
 - Ports open: 22, 80
 
