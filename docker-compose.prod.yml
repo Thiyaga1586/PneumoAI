@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: pneumoai
       POSTGRES_USER: pneumoai
-      POSTGRES_PASSWORD: pneumoai_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -40,7 +40,7 @@ services:
       - .env.production
     environment:
       - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=postgresql://pneumoai:pneumoai_password@postgres:5432/pneumoai
+      - DATABASE_URL=postgresql://pneumoai:${POSTGRES_PASSWORD}@postgres:5432/pneumoai
       - MODEL_DEVICE=cpu
     volumes:
       - pneumoai_runtime:/app/data/runtime
@@ -74,7 +74,7 @@ services:
       - .env.production
     environment:
       - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=postgresql://pneumoai:pneumoai_password@postgres:5432/pneumoai
+      - DATABASE_URL=postgresql://pneumoai:${POSTGRES_PASSWORD}@postgres:5432/pneumoai
       - MODEL_DEVICE=cpu
     volumes:
       - pneumoai_runtime:/app/data/runtime
