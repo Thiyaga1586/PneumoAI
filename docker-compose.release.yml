@@ -13,7 +13,7 @@ services:
       retries: 5
 
   pneumoai:
-    image: ghcr.io/thiyaga1586/pneumoai@sha256:297f4b4a3640f51cd0a279ded702de3bdc2c7cfc9ce0507de34cc2dc0ba85dfd
+    image: ghcr.io/thiyaga1586/pneumoai@sha256:7234722ba8ccd68cea97695659ef3ceca40db8ffe87b46d9bb6322b33b8ae9fa
     container_name: pneumoai
     ports:
       - "8080:8000"
@@ -42,7 +42,7 @@ services:
       start_period: 40s
 
   worker:
-    image: ghcr.io/thiyaga1586/pneumoai@sha256:297f4b4a3640f51cd0a279ded702de3bdc2c7cfc9ce0507de34cc2dc0ba85dfd
+    image: ghcr.io/thiyaga1586/pneumoai@sha256:7234722ba8ccd68cea97695659ef3ceca40db8ffe87b46d9bb6322b33b8ae9fa
     container_name: pneumoai-worker
     command: ["python", "scripts/run_worker.py"]
     env_file:
