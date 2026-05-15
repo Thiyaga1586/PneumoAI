@@ -16,3 +16,5 @@ mlruns/
 *.egg-info/
 
 .env.production
+
+data/backups/
