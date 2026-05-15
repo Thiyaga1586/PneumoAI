@@ -1,21 +1,38 @@
-from io import BytesIO
 from fastapi.testclient import TestClient
-from PIL import Image
 
 from pneumoai.serving.api.app import app
-from pneumoai.models.registry import get_current_version
+from pneumoai.serving.api import routes_predict
+from tests.helpers import make_test_image_bytes
 
 client = TestClient(app)
 
 
-def make_test_image_bytes() -> bytes:
-    image = Image.new("L", (224, 224), color=128)
-    buffer = BytesIO()
-    image.save(buffer, format="PNG")
-    return buffer.getvalue()
+def test_predict_sync(monkeypatch):
+    audit_calls = []
 
+    def fake_log_prediction(
+        request_id: str,
+        model_version: str,
+        prediction: str,
+        probability: float,
+        threshold: float,
+        latency_ms: float,
+        true_label: str | None,
+    ) -> None:
+        audit_calls.append(
+            {
+                "request_id": request_id,
+                "model_version": model_version,
+                "prediction": prediction,
+                "probability": probability,
+                "threshold": threshold,
+                "latency_ms": latency_ms,
+                "true_label": true_label,
+            }
+        )
 
-def test_predict_sync():
+    monkeypatch.setattr(routes_predict, "log_prediction", fake_log_prediction)
+
     image_bytes = make_test_image_bytes()
     response = client.post(
         "/predict-sync",
@@ -23,7 +40,16 @@ def test_predict_sync():
     )
 
     assert response.status_code == 200
-    body = response.json()
-    assert body["status"] == "completed"
-    assert body["model_version"] == get_current_version()
-    assert body["prediction"] in {"PNEUMONIA", "NORMAL"}
+
+    data = response.json()
+    assert data["status"] == "completed"
+    assert data["model_version"] == "v2"
+    assert data["prediction"] in {"NORMAL", "PNEUMONIA"}
+    assert 0.0 <= data["probability"] <= 1.0
+    assert data["threshold"] == 0.45
+    assert data["latency_ms"] >= 0.0
+    assert data["request_id"]
+
+    assert len(audit_calls) == 1
+    assert audit_calls[0]["request_id"] == data["request_id"]
+    assert audit_calls[0]["model_version"] == data["model_version"]
