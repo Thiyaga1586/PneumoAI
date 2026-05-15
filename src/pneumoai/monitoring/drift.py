@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 import json
-import math
-import sqlite3
 from pathlib import Path
 from typing import Any
 
 import numpy as np
+from sqlalchemy import text
 
 from pneumoai.common.settings import settings
-from pneumoai.storage.sqlite import get_connection
+from pneumoai.storage.sqlite import get_engine, init_db
 
 
 def _baseline_hist_path(version: str) -> Path:
@@ -52,29 +51,29 @@ def fetch_recent_probabilities(
     model_version: str,
     limit: int = 500,
 ) -> list[float]:
-    conn = get_connection()
-    try:
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            SELECT probability
-            FROM predictions
-            WHERE model_version = ?
-            ORDER BY created_at DESC
-            LIMIT ?
-            """,
-            (model_version, limit),
-        )
-        rows = cursor.fetchall()
-    finally:
-        conn.close()
+    init_db()
+
+    engine = get_engine()
+    with engine.connect() as conn:
+        rows = conn.execute(
+            text(
+                """
+                SELECT probability
+                FROM predictions
+                WHERE model_version = :model_version
+                ORDER BY created_at DESC
+                LIMIT :limit
+                """
+            ),
+            {
+                "model_version": model_version,
+                "limit": int(limit),
+            },
+        ).fetchall()
 
     probs: list[float] = []
     for row in rows:
-        if isinstance(row, sqlite3.Row):
-            value = row["probability"]
-        else:
-            value = row[0]
+        value = row[0]
         if value is not None:
             probs.append(float(value))
 

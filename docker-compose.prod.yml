@@ -1,4 +1,20 @@
 services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: pneumoai-postgres
+    environment:
+      POSTGRES_DB: pneumoai
+      POSTGRES_USER: pneumoai
+      POSTGRES_PASSWORD: pneumoai_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pneumoai -d pneumoai"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   redis:
     image: redis:7-alpine
     container_name: pneumoai-redis
@@ -24,11 +40,14 @@ services:
       - .env.production
     environment:
       - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://pneumoai:pneumoai_password@postgres:5432/pneumoai
       - MODEL_DEVICE=cpu
     volumes:
       - pneumoai_runtime:/app/data/runtime
     depends_on:
       redis:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
@@ -55,16 +74,32 @@ services:
       - .env.production
     environment:
       - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://pneumoai:pneumoai_password@postgres:5432/pneumoai
       - MODEL_DEVICE=cpu
     volumes:
       - pneumoai_runtime:/app/data/runtime
     depends_on:
       redis:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
+      pneumoai:
+        condition: service_healthy
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: pneumoai-nginx
+    ports:
+      - "8081:80"
+    volumes:
+      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
       pneumoai:
         condition: service_healthy
     restart: unless-stopped
 
 volumes:
   redis_data:
+  postgres_data:
   pneumoai_runtime:

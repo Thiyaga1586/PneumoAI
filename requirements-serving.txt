@@ -16,3 +16,6 @@ opencv-python-headless==4.13.0.92
 prometheus-client==0.25.0
 redis==7.4.0
 requests==2.33.1
+
+SQLAlchemy==2.0.45
+psycopg2-binary==2.9.11
