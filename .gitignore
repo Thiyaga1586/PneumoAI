@@ -18,3 +18,5 @@ mlruns/
 .env.production
 
 data/backups/
+compressor.py
+*.zip

@@ -15,6 +15,7 @@ class Settings(BaseSettings):
 
     models_dir: str = "models"
     runtime_dir: str = "data/runtime"
+    prometheus_multiproc_dir: str = "data/runtime/prometheus"
     sqlite_path: str = "data/runtime/requests.db"
 
     inference_backend: str = "local"
@@ -31,6 +32,7 @@ class Settings(BaseSettings):
     redis_enabled: bool = True
     redis_url: str = "redis://localhost:6379/0"
     redis_queue_key: str = "pneumoai:queue:predict"
+    redis_async_completions_key: str = "pneumoai:metrics:async_completions_total"
     worker_poll_interval_seconds: float = 1.0
 
     cors_origins: str = "http://localhost:5173"

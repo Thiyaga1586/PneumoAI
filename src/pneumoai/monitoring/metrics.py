@@ -1,4 +1,29 @@
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+from pneumoai.common.settings import settings
+
+Path(settings.prometheus_multiproc_dir).mkdir(
+    parents=True,
+    exist_ok=True,
+)
+
+os.environ.setdefault(
+    "PROMETHEUS_MULTIPROC_DIR",
+    settings.prometheus_multiproc_dir,
+)
+
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    CollectorRegistry,
+    Counter,
+    Histogram,
+    generate_latest,
+)
+from prometheus_client import multiprocess
+
 
 PREDICTION_REQUESTS_TOTAL = Counter(
     "pneumoai_prediction_requests_total",
@@ -45,4 +70,10 @@ DRIFT_SCORE = Histogram(
 
 
 def render_metrics() -> tuple[bytes, str]:
-    return generate_latest(), CONTENT_TYPE_LATEST
+    registry = CollectorRegistry()
+    multiprocess.MultiProcessCollector(registry)
+
+    return (
+        generate_latest(registry),
+        CONTENT_TYPE_LATEST,
+    )

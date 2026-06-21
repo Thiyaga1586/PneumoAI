@@ -30,7 +30,10 @@ services:
     restart: unless-stopped
 
   pneumoai:
-    image: ghcr.io/thiyaga1586/pneumoai@sha256:7234722ba8ccd68cea97695659ef3ceca40db8ffe87b46d9bb6322b33b8ae9fa
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pneumoai:local
     container_name: pneumoai
     env_file:
       - .env.production
@@ -61,7 +64,10 @@ services:
     restart: unless-stopped
 
   worker:
-    image: ghcr.io/thiyaga1586/pneumoai@sha256:7234722ba8ccd68cea97695659ef3ceca40db8ffe87b46d9bb6322b33b8ae9fa
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pneumoai:local
     container_name: pneumoai-worker
     command: ["python", "scripts/run_worker.py"]
     env_file:
