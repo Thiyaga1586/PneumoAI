@@ -40,6 +40,7 @@ services:
     environment:
       - REDIS_URL=redis://redis:6379/0
       - MODEL_DEVICE=cpu
+      - PROMETHEUS_MULTIPROC_DIR=/app/data/runtime/prometheus
     expose:
       - "8000"
     volumes:
@@ -75,6 +76,7 @@ services:
     environment:
       - REDIS_URL=redis://redis:6379/0
       - MODEL_DEVICE=cpu
+      - PROMETHEUS_MULTIPROC_DIR=/app/data/runtime/prometheus
     volumes:
       - pneumoai_runtime:/app/data/runtime
     depends_on:
