@@ -81,6 +81,7 @@ jobs:
           MODELS_DIR=models
           RUNTIME_DIR=data/runtime
           SQLITE_PATH=data/runtime/requests.db
+          DATABASE_URL=sqlite:///data/runtime/requests.db
           INFERENCE_BACKEND=local
           TRITON_ENABLED=false
           TRITON_URL=localhost:8001
