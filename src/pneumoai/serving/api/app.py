@@ -1,29 +1,30 @@
+from __future__ import annotations
+
 from contextlib import asynccontextmanager
 import logging
+import time
+from uuid import uuid4
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Response
-from pneumoai.monitoring.metrics import render_metrics
 
 from pneumoai.common.logging import configure_logging
 from pneumoai.common.settings import settings
 from pneumoai.models.loader import validate_model_artifacts
 from pneumoai.models.registry import get_current_version
-from pneumoai.serving.dispatcher.inference_service import _get_model_bundle
-from pneumoai.storage.sqlite import init_db
-
+from pneumoai.monitoring.metrics import render_metrics
 from pneumoai.serving.api.routes_admin import router as admin_router
 from pneumoai.serving.api.routes_async import router as async_router
 from pneumoai.serving.api.routes_health import router as health_router
 from pneumoai.serving.api.routes_predict import router as predict_router
+from pneumoai.serving.dispatcher.inference_service import _get_model_bundle
+from pneumoai.storage.sqlite import init_db
 
 logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-
     configure_logging(settings.log_level)
 
     logger.info(
@@ -79,7 +80,6 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-
 allowed_origins = [
     origin.strip()
     for origin in settings.cors_origins.split(",")
@@ -97,13 +97,56 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-logger.info(
-    "metrics_endpoint_enabled",
-    extra={
-        "request_id": "startup",
-        "path": "/metrics",
-    },
-)
+
+@app.middleware("http")
+async def request_observability(request: Request, call_next):
+    request_id = request.headers.get("X-Request-ID") or str(uuid4())
+    start = time.perf_counter()
+
+    logger.info(
+        "request_started",
+        extra={
+            "request_id": request_id,
+            "method": request.method,
+            "path": request.url.path,
+        },
+    )
+
+    try:
+        response = await call_next(request)
+    except Exception:
+        logger.exception(
+            "request_failed",
+            extra={
+                "request_id": request_id,
+                "method": request.method,
+                "path": request.url.path,
+            },
+        )
+        raise
+
+    elapsed_ms = (time.perf_counter() - start) * 1000.0
+    response.headers["X-Request-ID"] = request_id
+    response.headers["X-Process-Time-ms"] = f"{elapsed_ms:.2f}"
+
+    logger.info(
+        "request_completed",
+        extra={
+            "request_id": request_id,
+            "method": request.method,
+            "path": request.url.path,
+            "status_code": response.status_code,
+            "duration_ms": round(elapsed_ms, 2),
+        },
+    )
+
+    return response
+
+
+@app.get("/metrics", include_in_schema=False)
+def metrics() -> Response:
+    body, content_type = render_metrics()
+    return Response(content=body, media_type=content_type)
 
 
 app.include_router(health_router)
@@ -111,14 +154,6 @@ app.include_router(predict_router)
 app.include_router(async_router)
 app.include_router(admin_router)
 
-@app.get("/metrics")
-def metrics():
-    payload, content_type = render_metrics()
-
-    return Response(
-        content=payload,
-        media_type=content_type,
-    )
 
 @app.get("/")
 async def root():
