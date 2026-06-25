@@ -70,7 +70,7 @@
         "y": 0
       },
       "id": 1,
-      "title": "🟢 Row 1 — Service Health",
+      "title": "Service Health",
       "type": "row"
     },
     {
@@ -512,7 +512,7 @@
         "y": 5
       },
       "id": 10,
-      "title": "📈 Row 2 — Throughput",
+      "title": "Throughput",
       "type": "row"
     },
     {
@@ -773,7 +773,7 @@
         "y": 22
       },
       "id": 20,
-      "title": "⏱ Row 3 — Latency",
+      "title": "Latency",
       "type": "row"
     },
     {
@@ -946,7 +946,7 @@
         "y": 31
       },
       "id": 30,
-      "title": "🖥 Row 4 — Runtime Health",
+      "title": "Runtime Health",
       "type": "row"
     },
     {
@@ -1212,7 +1212,7 @@
         "y": 40
       },
       "id": 40,
-      "title": "🤖 Row 5 — Model Performance & Infrastructure (Placeholders — Wire Later)",
+      "title": "Model Performance & Infrastructure",
       "type": "row",
       "panels": [
         {
