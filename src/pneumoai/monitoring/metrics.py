@@ -19,7 +19,10 @@ from prometheus_client import (
     CONTENT_TYPE_LATEST,
     CollectorRegistry,
     Counter,
+    GCCollector,
     Histogram,
+    PlatformCollector,
+    ProcessCollector,
     generate_latest,
 )
 from prometheus_client import multiprocess
@@ -71,6 +74,11 @@ DRIFT_SCORE = Histogram(
 
 def render_metrics() -> tuple[bytes, str]:
     registry = CollectorRegistry()
+
+    ProcessCollector(registry=registry)
+    PlatformCollector(registry=registry)
+    GCCollector(registry=registry)
+
     multiprocess.MultiProcessCollector(registry)
 
     return (

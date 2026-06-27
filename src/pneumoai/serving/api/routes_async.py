@@ -11,6 +11,12 @@ from pneumoai.monitoring.metrics import ASYNC_REQUESTS_TOTAL
 from pneumoai.preprocessing.validation import validate_upload
 from pneumoai.queue.jobs import enqueue_prediction_job, get_job_status
 
+from pneumoai.monitoring.metrics import (
+    ASYNC_REQUESTS_TOTAL,
+    PREDICTION_ERRORS_TOTAL,
+    PREDICTION_REQUESTS_TOTAL,
+)
+
 router = APIRouter()
 
 
@@ -25,23 +31,38 @@ async def create_async_prediction(
     file: UploadFile = File(...),
     true_label: Optional[str] = Form(default=None),
 ):
-    await validate_upload(file)
+    PREDICTION_REQUESTS_TOTAL.inc()
 
-    request_id = generate_request_id()
-    suffix = Path(file.filename or "upload.bin").suffix or ".bin"
-    target_path = _runtime_upload_dir() / f"{request_id}{suffix}"
+    try:
+        await validate_upload(file)
 
-    raw = await file.read()
-    with open(target_path, "wb") as f:
-        f.write(raw)
+        request_id = generate_request_id()
+        suffix = Path(file.filename or "upload.bin").suffix or ".bin"
+        target_path = _runtime_upload_dir() / f"{request_id}{suffix}"
 
-    ASYNC_REQUESTS_TOTAL.inc()
+        raw = await file.read()
+        with open(target_path, "wb") as f:
+            f.write(raw)
 
-    return enqueue_prediction_job(
-        request_id=request_id,
-        image_uri=str(target_path),
-        true_label=true_label,
-    )
+        enqueue_prediction_job(
+            request_id=request_id,
+            image_uri=str(target_path),
+            true_label=true_label,
+        )
+
+        ASYNC_REQUESTS_TOTAL.inc()
+
+        return {
+            "request_id": request_id,
+            "status": "queued",
+        }
+
+    except HTTPException:
+        PREDICTION_ERRORS_TOTAL.inc()
+        raise
+    except Exception as exc:
+        PREDICTION_ERRORS_TOTAL.inc()
+        raise HTTPException(status_code=500, detail="Prediction failed") from exc
 
 
 @router.get("/predict/{request_id}")

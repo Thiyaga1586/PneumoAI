@@ -15,6 +15,12 @@ from pneumoai.queue.jobs import update_job_status
 from pneumoai.queue.redis_client import get_redis_client
 from pneumoai.serving.dispatcher.inference_service import run_inference
 
+from pneumoai.monitoring.metrics import (
+    ASYNC_COMPLETIONS_TOTAL,
+    PREDICTION_ERRORS_TOTAL,
+    PREDICTION_LATENCY_MS,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -38,6 +44,8 @@ def process_one_job():
 
     try:
         inference = run_inference(image_uri=image_uri)
+        latency_ms = float(inference["latency_ms"])
+        PREDICTION_LATENCY_MS.observe(latency_ms)
         completed_at = datetime.now(UTC).isoformat()
 
         update_job_status(
@@ -48,7 +56,7 @@ def process_one_job():
             prediction=inference["prediction"],
             probability=inference["probability"],
             threshold=inference["threshold"],
-            latency_ms=inference["latency_ms"],
+            latency_ms=latency_ms,
             backend=inference["backend"],
             true_label=true_label,
         )
@@ -59,7 +67,7 @@ def process_one_job():
             prediction=inference["prediction"],
             probability=float(inference["probability"]),
             threshold=float(inference["threshold"]),
-            latency_ms=float(inference["latency_ms"]),
+            latency_ms=latency_ms,
             true_label=true_label,
         )
 
@@ -73,12 +81,13 @@ def process_one_job():
             "prediction": inference["prediction"],
             "probability": float(inference["probability"]),
             "threshold": float(inference["threshold"]),
-            "latency_ms": float(inference["latency_ms"]),
+            "latency_ms": latency_ms,
             "backend": inference["backend"],
             "true_label": true_label,
         }
 
     except Exception as exc:
+        PREDICTION_ERRORS_TOTAL.inc()
         completed_at = datetime.now(UTC).isoformat()
 
         update_job_status(
