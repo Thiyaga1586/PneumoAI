@@ -1,0 +1,106 @@
+import { Link, useParams } from 'react-router-dom';
+import { formatLatencyMs, formatProbability } from '../api';
+import { useJobPoll } from '../hooks/useJobPoll';
+
+function StatusBadge({ status }: { status?: string | null }) {
+  const cls =
+    status === 'completed'
+      ? 'badge success'
+      : status === 'failed'
+      ? 'badge danger'
+      : status === 'processing'
+      ? 'badge warn'
+      : 'badge neutral';
+
+  return <span className={cls}>{status ?? 'unknown'}</span>;
+}
+
+function MetricCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number | null | undefined;
+}) {
+  return (
+    <div className="metric-card">
+      <div className="metric-label">{label}</div>
+      <div className="metric-value">{value ?? '—'}</div>
+    </div>
+  );
+}
+
+export default function ResultPage() {
+  const { requestId } = useParams<{ requestId: string }>();
+  const { job, loading, error, refresh } = useJobPoll(requestId ?? null);
+
+  if (!requestId) {
+    return (
+      <div className="page">
+        <div className="card">
+          <h2>Missing request ID</h2>
+          <p className="muted">Go back and submit an image first.</p>
+          <Link className="primary-btn inline" to="/">
+            Back to upload
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="page">
+      <section className="hero">
+        <div>
+          <p className="eyebrow">Prediction Status</p>
+          <h1>Request {requestId}</h1>
+          <p className="muted">
+            This page polls the backend until the worker finishes processing.
+          </p>
+        </div>
+        <div className="hero-actions">
+          <Link className="secondary-btn" to="/">
+            New upload
+          </Link>
+          <button className="secondary-btn" onClick={() => void refresh()}>
+            Refresh now
+          </button>
+        </div>
+      </section>
+
+      <div className="card">
+        <div className="status-row">
+          <StatusBadge status={job?.status} />
+          <span className="muted">
+            {loading ? 'Refreshing status…' : 'Auto-refreshes every few seconds'}
+          </span>
+        </div>
+
+        {error ? <div className="error-box">{error}</div> : null}
+
+        <div className="grid metrics-grid">
+          <MetricCard label="Prediction" value={job?.prediction} />
+          <MetricCard label="Probability" value={formatProbability(job?.probability)} />
+          <MetricCard label="Threshold" value={formatProbability(job?.threshold)} />
+          <MetricCard label="Latency" value={formatLatencyMs(job?.latency_ms)} />
+          <MetricCard label="Model version" value={job?.model_version ?? '—'} />
+          <MetricCard label="Backend" value={job?.backend ?? '—'} />
+          <MetricCard label="True label" value={job?.true_label ?? '—'} />
+          <MetricCard label="Created at" value={job?.created_at ?? '—'} />
+        </div>
+
+        {job?.status === 'failed' ? (
+          <div className="error-box">
+            {job.error ?? 'The worker failed to complete this job.'}
+          </div>
+        ) : null}
+
+        {job?.status === 'queued' || job?.status === 'processing' ? (
+          <div className="info-box">
+            The job is still in progress. This page will update automatically when the worker finishes.
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
