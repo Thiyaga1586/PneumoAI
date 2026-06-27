@@ -54,7 +54,7 @@
       }
     ]
   },
-  "description": "PneumoAI Production Operations Dashboard — SRE / MLOps / Platform Engineering",
+  "description": "PneumoAI Production Operations Dashboard \u2014 SRE / MLOps / Platform Engineering",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -761,7 +761,7 @@
           "refId": "B"
         }
       ],
-      "title": "Async Throughput — Submitted vs Completed/sec",
+      "title": "Async Throughput \u2014 Submitted vs Completed/sec",
       "type": "timeseries"
     },
     {
@@ -979,7 +979,7 @@
               }
             ]
           },
-          "unit": "MB"
+          "unit": "decmbytes"
         },
         "overrides": []
       },
@@ -1013,7 +1013,7 @@
             "uid": "${datasource}"
           },
           "expr": "process_resident_memory_bytes{job=\"pneumoai-api\"} / 1024 / 1024",
-          "legendFormat": "API Memory (MB)",
+          "legendFormat": "API Memory (decmbytes)",
           "refId": "A"
         },
         {
@@ -1022,7 +1022,7 @@
             "uid": "${datasource}"
           },
           "expr": "process_resident_memory_bytes{job=\"prometheus\"} / 1024 / 1024",
-          "legendFormat": "Prometheus Memory (MB)",
+          "legendFormat": "Prometheus Memory (decmbytes)",
           "refId": "B"
         }
       ],
@@ -1105,7 +1105,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Model drift checks run and JS divergence score over time. High divergence indicates data distribution shift.",
+      "description": "Model drift checks and JS divergence score over time. Higher divergence indicates data distribution shift.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1186,7 +1186,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "increase(pneumoai_drift_checks_total[$__rate_interval])",
+          "expr": "rate(pneumoai_drift_checks_total[$__rate_interval])",
           "legendFormat": "Drift Checks",
           "refId": "A"
         },
@@ -1195,12 +1195,12 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "pneumoai_drift_js_divergence",
+          "expr": "sum(rate(pneumoai_drift_js_divergence_sum[$__rate_interval])) / clamp_min(sum(rate(pneumoai_drift_js_divergence_count[$__rate_interval])), 1)",
           "legendFormat": "JS Divergence",
           "refId": "B"
         }
       ],
-      "title": "Model Drift — Checks & JS Divergence",
+      "title": "Model Drift \u2014 Checks & JS Divergence",
       "type": "timeseries"
     },
     {
@@ -1216,410 +1216,131 @@
       "type": "row",
       "panels": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "description": "PLACEHOLDER — Requires exporting confidence score histogram from inference. Wire when available.",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "grey",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 6,
-            "w": 6,
-            "x": 0,
-            "y": 41
-          },
           "id": 41,
-          "options": {
-            "colorMode": "background",
-            "graphMode": "none",
-            "justifyMode": "center",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "textMode": "value_and_name"
+          "type": "text",
+          "title": "Confidence Distribution",
+          "gridPos": {
+            "h": 6,
+            "w": 6,
+            "x": 0,
+            "y": 41
           },
-          "targets": [],
-          "title": "Confidence Distribution [PLACEHOLDER]",
-          "type": "stat"
+          "options": {
+            "mode": "markdown",
+            "content": "## PLACEHOLDER\n\nWill display model confidence histogram after confidence metrics are exported.\n\n**Planned Metric**\n\n`pneumoai_prediction_confidence_bucket`"
+          }
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "description": "PLACEHOLDER — Requires ground-truth labels. Wire when label pipeline is available.",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "grey",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "percent"
-            },
-            "overrides": []
-          },
+          "id": 42,
+          "type": "text",
+          "title": "False Positive Rate",
           "gridPos": {
             "h": 6,
             "w": 6,
             "x": 6,
             "y": 41
           },
-          "id": 42,
           "options": {
-            "colorMode": "background",
-            "graphMode": "none",
-            "justifyMode": "center",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "textMode": "value_and_name"
-          },
-          "targets": [],
-          "title": "False Positive Rate [PLACEHOLDER]",
-          "type": "stat"
+            "mode": "markdown",
+            "content": "## PLACEHOLDER\n\nWill display False Positive Rate.\n\n**Planned Metric**\n\n`pneumoai_false_positive_rate`"
+          }
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "description": "PLACEHOLDER — Requires ground-truth labels. Wire when label pipeline is available.",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "grey",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "percent"
-            },
-            "overrides": []
-          },
+          "id": 43,
+          "type": "text",
+          "title": "False Negative Rate",
           "gridPos": {
             "h": 6,
             "w": 6,
             "x": 12,
             "y": 41
           },
-          "id": 43,
           "options": {
-            "colorMode": "background",
-            "graphMode": "none",
-            "justifyMode": "center",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "textMode": "value_and_name"
-          },
-          "targets": [],
-          "title": "False Negative Rate [PLACEHOLDER]",
-          "type": "stat"
+            "mode": "markdown",
+            "content": "## PLACEHOLDER\n\nWill display False Negative Rate.\n\n**Planned Metric**\n\n`pneumoai_false_negative_rate`"
+          }
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "description": "PLACEHOLDER — Export pneumoai_model_version_info gauge from app. Wire when available.",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "grey",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
+          "id": 44,
+          "type": "text",
+          "title": "Model Version",
           "gridPos": {
             "h": 6,
             "w": 6,
             "x": 18,
             "y": 41
           },
-          "id": 44,
           "options": {
-            "colorMode": "background",
-            "graphMode": "none",
-            "justifyMode": "center",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "textMode": "value_and_name"
-          },
-          "targets": [],
-          "title": "Model Version [PLACEHOLDER]",
-          "type": "stat"
+            "mode": "markdown",
+            "content": "## PLACEHOLDER\n\nWill display currently deployed production model version.\n\n**Planned Metric**\n\n`pneumoai_model_version`"
+          }
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "description": "PLACEHOLDER — Export queue depth from Redis via redis_exporter or application gauge. Wire when available.",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "grey",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
+          "id": 45,
+          "type": "text",
+          "title": "Queue Length",
           "gridPos": {
             "h": 6,
             "w": 6,
             "x": 0,
             "y": 47
           },
-          "id": 45,
           "options": {
-            "colorMode": "background",
-            "graphMode": "none",
-            "justifyMode": "center",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "textMode": "value_and_name"
-          },
-          "targets": [],
-          "title": "Queue Length [PLACEHOLDER]",
-          "type": "stat"
+            "mode": "markdown",
+            "content": "## PLACEHOLDER\n\nWill display Redis queue depth.\n\n**Planned Metric**\n\n`pneumoai_queue_length`"
+          }
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "description": "PLACEHOLDER — Export queue wait histogram from worker. Wire when available.",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "grey",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "ms"
-            },
-            "overrides": []
-          },
+          "id": 46,
+          "type": "text",
+          "title": "Average Queue Wait",
           "gridPos": {
             "h": 6,
             "w": 6,
             "x": 6,
             "y": 47
           },
-          "id": 46,
           "options": {
-            "colorMode": "background",
-            "graphMode": "none",
-            "justifyMode": "center",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "textMode": "value_and_name"
-          },
-          "targets": [],
-          "title": "Avg Queue Wait [PLACEHOLDER]",
-          "type": "stat"
+            "mode": "markdown",
+            "content": "## PLACEHOLDER\n\nWill display average queue waiting time.\n\n**Planned Metric**\n\n`pneumoai_queue_wait_seconds`"
+          }
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "description": "PLACEHOLDER — Export pneumoai_inference_device_info label from application. Wire when available.",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "grey",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
+          "id": 47,
+          "type": "text",
+          "title": "Inference Device",
           "gridPos": {
             "h": 6,
             "w": 6,
             "x": 12,
             "y": 47
           },
-          "id": 47,
           "options": {
-            "colorMode": "background",
-            "graphMode": "none",
-            "justifyMode": "center",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "textMode": "value_and_name"
-          },
-          "targets": [],
-          "title": "Inference Device [PLACEHOLDER]",
-          "type": "stat"
+            "mode": "markdown",
+            "content": "## PLACEHOLDER\n\nWill display CPU / GPU inference device.\n\n**Planned Metric**\n\n`pneumoai_inference_device`"
+          }
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "description": "PLACEHOLDER — Requires DCGM exporter or nvidia_smi_exporter. Wire when GPU metrics are available.",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "grey",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "percent"
-            },
-            "overrides": []
-          },
+          "id": 48,
+          "type": "text",
+          "title": "GPU Utilization",
           "gridPos": {
             "h": 6,
             "w": 6,
             "x": 18,
             "y": 47
           },
-          "id": 48,
           "options": {
-            "colorMode": "background",
-            "graphMode": "none",
-            "justifyMode": "center",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "textMode": "value_and_name"
-          },
-          "targets": [],
-          "title": "GPU Utilization [PLACEHOLDER]",
-          "type": "stat"
+            "mode": "markdown",
+            "content": "## PLACEHOLDER\n\nWill display GPU utilization when CUDA deployment is enabled.\n\n**Planned Metric**\n\n`DCGM_FI_DEV_GPU_UTIL`"
+          }
         }
       ]
     }
   ],
   "refresh": "30s",
   "schemaVersion": 38,
+  "style": "dark",
   "tags": [
     "production",
     "mlops",
@@ -1649,8 +1370,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "PneumoAI — Production Overview",
+  "title": "PneumoAI Production Overview",
   "uid": "pneumoai-production-overview",
-  "version": 1,
+  "version": 4,
   "weekStart": ""
 }
