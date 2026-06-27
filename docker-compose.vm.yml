@@ -30,7 +30,7 @@ services:
     restart: unless-stopped
 
   prometheus:
-    image: prom/prometheus:3.11.3
+    image: prom/prometheus:v3.11.3
     container_name: pneumoai-prometheus
     ports:
       - "9090:9090"
@@ -40,7 +40,7 @@ services:
     restart: unless-stopped
 
   grafana:
-    image: grafana/grafana:13.0.1-security-01
+    image: grafana/grafana:13.0.1
     container_name: pneumoai-grafana
     environment:
       - GF_SECURITY_ADMIN_USER=admin
