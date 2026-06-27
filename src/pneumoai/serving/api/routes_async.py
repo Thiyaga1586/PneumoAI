@@ -44,7 +44,7 @@ async def create_async_prediction(
         with open(target_path, "wb") as f:
             f.write(raw)
 
-        enqueue_prediction_job(
+        result = enqueue_prediction_job(
             request_id=request_id,
             image_uri=str(target_path),
             true_label=true_label,
@@ -52,10 +52,7 @@ async def create_async_prediction(
 
         ASYNC_REQUESTS_TOTAL.inc()
 
-        return {
-            "request_id": request_id,
-            "status": "queued",
-        }
+        return result
 
     except HTTPException:
         PREDICTION_ERRORS_TOTAL.inc()
