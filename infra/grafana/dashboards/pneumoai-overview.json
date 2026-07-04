@@ -954,7 +954,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Resident memory usage of the FastAPI process in megabytes. Growing memory suggests a leak.",
+      "description": "Resident memory used by the application process. Persistent growth may indicate a memory leak.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1012,8 +1012,8 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "process_resident_memory_bytes{job=\"pneumoai-api\"} / 1024 / 1024",
-          "legendFormat": "API Memory (decmbytes)",
+          "expr": "process_resident_memory_bytes{job=\"pneumoai-api\"}",
+          "legendFormat": "API",
           "refId": "A"
         },
         {
@@ -1021,12 +1021,12 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "process_resident_memory_bytes{job=\"prometheus\"} / 1024 / 1024",
-          "legendFormat": "Prometheus Memory (decmbytes)",
+          "expr": "process_resident_memory_bytes{job=\"prometheus\"}",
+          "legendFormat": "Prometheus",
           "refId": "B"
         }
       ],
-      "title": "Process Memory (API + Prometheus)",
+      "title": "Memory Usage",
       "type": "timeseries"
     },
     {
@@ -1097,7 +1097,7 @@
           "refId": "A"
         }
       ],
-      "title": "API CPU Usage (cores)",
+      "title": "CPU Usage",
       "type": "timeseries"
     },
     {
