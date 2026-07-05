@@ -74,10 +74,22 @@ export async function getBackendReady(): Promise<boolean> {
   return response.ok;
 }
 
-export function formatProbability(value?: number | null): string {
-  if (value === null || value === undefined || Number.isNaN(value)) return '—';
-  if (value <= 1) return `${(value * 100).toFixed(2)}%`;
-  return `${value.toFixed(2)}%`;
+export function formatProbability(
+    value?: number | null
+): string {
+
+    if (value == null)
+        return "—";
+
+    const percent = value * 100;
+
+    if (percent >= 99.995)
+        return ">99.99%";
+
+    if (percent <= 0.005)
+        return "<0.01%";
+
+    return `${percent.toFixed(3)}%`;
 }
 
 export function formatLatencyMs(value?: number | null): string {

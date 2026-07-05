@@ -2,6 +2,21 @@ import { Link, useParams } from 'react-router-dom';
 import { formatLatencyMs, formatProbability } from '../api';
 import { useJobPoll } from '../hooks/useJobPoll';
 
+function formatTimestamp(value?: string | null) {
+  if (!value) return "—";
+
+  const date = new Date(value);
+
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Kolkata",
+  }).format(date) + " IST";
+}
+
 function StatusBadge({ status }: { status?: string | null }) {
   const cls =
     status === 'completed'
@@ -84,9 +99,8 @@ export default function ResultPage() {
           <MetricCard label="Threshold" value={formatProbability(job?.threshold)} />
           <MetricCard label="Latency" value={formatLatencyMs(job?.latency_ms)} />
           <MetricCard label="Model version" value={job?.model_version ?? '—'} />
-          <MetricCard label="Backend" value={job?.backend ?? '—'} />
           <MetricCard label="True label" value={job?.true_label ?? '—'} />
-          <MetricCard label="Created at" value={job?.created_at ?? '—'} />
+          <MetricCard label="Created at" value={formatTimestamp(job?.created_at)} />
         </div>
 
         <div className="info-box">
