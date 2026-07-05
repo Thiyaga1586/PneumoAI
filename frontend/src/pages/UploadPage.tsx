@@ -58,10 +58,13 @@ export default function UploadPage() {
     <div className="page">
       <section className="hero">
         <div>
-          <p className="eyebrow">PneumoAI Prediction Portal</p>
-          <h1>Upload a chest X-ray and get a prediction job instantly.</h1>
+          <p className="eyebrow">
+            PneumoAI - AI Assisted Chest X-ray Analysis
+          </p>
+          <h1>Upload a chest X-ray to receive an AI-powered pneumonia prediction.</h1>
+
           <p className="muted">
-            The backend queues the image, the worker processes it, and this page polls the result by request ID.
+            Your X-ray is securely uploaded, processed by the inference pipeline, and the prediction is displayed once analysis is complete.
           </p>
         </div>
       </section>
@@ -105,6 +108,16 @@ export default function UploadPage() {
         ) : null}
 
         {error ? <div className="error-box">{error}</div> : null}
+
+        <div className="info-box">
+          <strong>Medical Disclaimer</strong>
+          <p style={{ marginTop: "0.5rem" }}>
+            PneumoAI is an AI-assisted screening tool intended for educational and
+            research purposes. Predictions may be incorrect and should not be used as
+            the sole basis for medical diagnosis or treatment decisions. Always consult
+            a qualified healthcare professional for clinical evaluation.
+          </p>
+        </div>
 
         <button className="primary-btn" type="submit" disabled={submitting}>
           {submitting ? 'Submitting…' : 'Run prediction'}
